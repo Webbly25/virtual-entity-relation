@@ -1,8 +1,8 @@
-import { Entity, MikroORM, PrimaryKey, Property } from '@mikro-orm/sqlite';
+import { Entity, MikroORM, OneToOne, PrimaryKey, Property, Ref } from '@mikro-orm/sqlite';
+
 
 @Entity()
 class User {
-
   @PrimaryKey()
   id!: number;
 
@@ -12,11 +12,25 @@ class User {
   @Property({ unique: true })
   email: string;
 
+  @OneToOne(() => UserVirtual, v => v.user)
+  virtualUser?: Ref<UserVirtual>;
+
   constructor(name: string, email: string) {
     this.name = name;
     this.email = email;
   }
+}
 
+@Entity({ expression: 'select id as virtual_user_id, name from users'})
+class UserVirtual {
+	@OneToOne(() => User, {
+		joinColumn: 'virtual_user_id',
+		inverseJoinColumn: 'id',
+	})
+	user!: Ref<User>;
+
+	@Property()
+	name!: string;
 }
 
 let orm: MikroORM;
