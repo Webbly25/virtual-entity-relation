@@ -12,7 +12,11 @@ class User {
   @Property({ unique: true })
   email: string;
 
-  @OneToOne(() => UserVirtual, v => v.user)
+  @OneToOne({
+    entity: () => UserVirtual,
+    ref: true,
+    formula: alias => `select id as virtual_user_id, name from users where users.id = ${alias}.id`,
+  })
   virtualUser?: Ref<UserVirtual>;
 
   constructor(name: string, email: string) {
@@ -23,12 +27,6 @@ class User {
 
 @Entity({ expression: 'select id as virtual_user_id, name from users'})
 class UserVirtual {
-	@OneToOne(() => User, {
-		joinColumn: 'virtual_user_id',
-		inverseJoinColumn: 'id',
-	})
-	user!: Ref<User>;
-
 	@Property()
 	name!: string;
 }
